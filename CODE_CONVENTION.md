@@ -28,6 +28,18 @@ Use this document as the default coding rule for this project.
 - Do not add hooks preemptively.
 - Prefer plain variables and direct function definitions first.
 
+### Immutability
+
+- Preserve immutability in React state, props, and derived data.
+- Do not mutate arrays, objects, maps, sets, or nested structures in place when they influence rendering.
+- Prefer non-mutating updates such as spreads, `map`, `filter`, and object reconstruction.
+
+### Variables
+
+- Prefer `const` by default.
+- Do not use `var`.
+- Do not use `let` unless reassignment is truly unavoidable and the reason is clear from the code.
+
 ### Components
 
 - Keep components focused on one responsibility.
@@ -84,6 +96,7 @@ const PREVIEW_CARD_MIN_HEIGHT = 240
 - Domain logic belongs in `src/features/<domain>`.
 - Separate `api`, `types`, `queries`, `mutations`, and `components` by responsibility.
 - Shared utilities should live in a clear shared location and not be copied between features.
+- Hook filenames must use camelCase.
 
 ## Styling Rule
 

@@ -10,6 +10,13 @@ Score the change out of 10.
 - Structure and separation: 0 to 2
 - Duplication and constants: 0 to 2
 
+When scoring, explicitly weigh these cross-cutting concerns as part of the categories above:
+
+- Code style quality
+- Scalability of the structure
+- UI/UX clarity and honesty for frontend changes
+- Readability and maintainability of the resulting code
+
 ## Guidance
 
 ### 9 to 10

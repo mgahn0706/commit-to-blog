@@ -32,6 +32,12 @@ Check these points every time:
 - Is repeated logic reduced or extracted?
 - Does the file or component need to be split because it became too long?
 - Does the code still match the intended `src/app` and `src/features` structure?
+- Is the code style coherent, or is complexity merely being moved into large hooks, helpers, or global stylesheets?
+- Does the change improve scalability, or does it introduce MVP-only structure that will break under more routes, features, or state?
+- For frontend changes, does the UI avoid fake or misleading elements such as disabled placeholder navigation, non-functional controls, or decorative structure without product meaning?
+- Does the typography, spacing, and layout create a clear hierarchy, or do sections still compete at similar visual weight?
+- Does the code improve readability, or does it hide complexity in god-hooks, large CSS files, or global rules with broad side effects?
+- For backend integration code, are operational failures surfaced clearly enough, or are important failures being swallowed too quietly?
 
 ## Output Format
 
@@ -74,3 +80,5 @@ If no code improvement was needed, say `Improvements made: none`.
 - Prefer repository-local rules over generic style opinions.
 - Keep the review concise and concrete.
 - Do not invent problems only to lower the score.
+- Be willing to review harshly when architecture, UI clarity, or maintainability are weak.
+- Findings should prioritize real risks in code style, scalability, UI/UX, and readability over polite but low-signal commentary.
