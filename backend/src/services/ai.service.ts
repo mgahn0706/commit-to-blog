@@ -14,6 +14,23 @@ type GeneratePostInput = {
   commitShas: string[]
 }
 
+type FallbackReason =
+  | 'missing_api_key'
+  | 'request_failed'
+  | 'empty_response'
+  | 'invalid_json'
+  | 'invalid_draft'
+
+class AIDraftGenerationError extends Error {
+  constructor(
+    readonly reason: FallbackReason,
+    message: string,
+  ) {
+    super(message)
+    this.name = 'AIDraftGenerationError'
+  }
+}
+
 class AIService {
   buildPrompt(input: {
     repositoryName: string
@@ -40,6 +57,7 @@ class AIService {
     commitMessages: string[]
     changedFiles: string[]
     sourceCommits: GeneratedPostPreviewDTO['sourceCommits']
+    fallbackReason: FallbackReason
   }): GeneratedPostPreviewDTO {
     return {
       title: `${input.repositoryName}: ${input.commitMessages[0] ?? 'Engineering update'}`,
@@ -58,12 +76,16 @@ class AIService {
       tags: ['engineering', 'github', 'draft'],
       sourceCommits: input.sourceCommits,
       generationMode: 'fallback',
+      fallbackReason: input.fallbackReason,
     }
   }
 
   private async generateWithOpenAI(prompt: string) {
     if (!env.OPENAI_API_KEY) {
-      return null
+      throw new AIDraftGenerationError(
+        'missing_api_key',
+        'OpenAI API key is missing.',
+      )
     }
 
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
@@ -90,7 +112,10 @@ class AIService {
     })
 
     if (!response.ok) {
-      throw new Error(`OpenAI request failed with ${response.status}.`)
+      throw new AIDraftGenerationError(
+        'request_failed',
+        `OpenAI request failed with ${response.status}.`,
+      )
     }
 
     const payload = (await response.json()) as {
@@ -104,14 +129,31 @@ class AIService {
     const content = payload.choices?.[0]?.message?.content
 
     if (!content) {
-      throw new Error('OpenAI response was empty.')
+      throw new AIDraftGenerationError(
+        'empty_response',
+        'OpenAI response was empty.',
+      )
     }
 
-    const parsed = JSON.parse(content) as {
+    let parsed: {
       title?: string
       summary?: string
       body?: string
       tags?: unknown
+    }
+
+    try {
+      parsed = JSON.parse(content) as {
+        title?: string
+        summary?: string
+        body?: string
+        tags?: unknown
+      }
+    } catch {
+      throw new AIDraftGenerationError(
+        'invalid_json',
+        'OpenAI response was not valid JSON.',
+      )
     }
 
     return {
@@ -175,6 +217,8 @@ class AIService {
         .join('\n\n'),
     })
 
+    let fallbackReason: FallbackReason = 'invalid_draft'
+
     try {
       const aiDraft = await this.generateWithOpenAI(prompt)
 
@@ -188,8 +232,29 @@ class AIService {
           generationMode: 'openai',
         }
       }
-    } catch {
-      // Fall through to the deterministic preview below.
+
+      fallbackReason = 'invalid_draft'
+      console.error('[aiService] OpenAI returned an incomplete draft.', {
+        repositoryId: input.repositoryId,
+        branchName: input.branchName,
+      })
+    } catch (error) {
+      if (error instanceof AIDraftGenerationError) {
+        fallbackReason = error.reason
+        console.error('[aiService] Falling back to deterministic draft.', {
+          reason: error.reason,
+          message: error.message,
+          repositoryId: input.repositoryId,
+          branchName: input.branchName,
+        })
+      } else {
+        fallbackReason = 'request_failed'
+        console.error('[aiService] Unexpected AI draft failure.', {
+          repositoryId: input.repositoryId,
+          branchName: input.branchName,
+          error,
+        })
+      }
     }
 
     return this.buildPreviewFallback({
@@ -198,6 +263,7 @@ class AIService {
       commitMessages: commitDetails.map((commitDetail) => commitDetail.message),
       changedFiles,
       sourceCommits,
+      fallbackReason,
     })
   }
 }

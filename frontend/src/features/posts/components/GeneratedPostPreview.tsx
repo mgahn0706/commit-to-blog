@@ -6,6 +6,13 @@ type PreviewCommit = {
 
 const SHORT_SHA_LENGTH = 7
 const DEFAULT_GENERATION_MODE = 'preview'
+const FALLBACK_REASON_LABELS = {
+  missing_api_key: 'OpenAI key is missing.',
+  request_failed: 'OpenAI request failed.',
+  empty_response: 'OpenAI returned an empty response.',
+  invalid_json: 'OpenAI returned invalid JSON.',
+  invalid_draft: 'OpenAI returned an incomplete draft.',
+} as const
 
 type GeneratedPostPreviewProps = {
   post: {
@@ -14,6 +21,7 @@ type GeneratedPostPreviewProps = {
     body: string
     sourceCommits: PreviewCommit[]
     generationMode?: 'openai' | 'fallback'
+    fallbackReason?: keyof typeof FALLBACK_REASON_LABELS
   }
   onSave?: () => void
   onRegenerate?: () => void
@@ -36,6 +44,11 @@ export function GeneratedPostPreview({
         </span>
         <span>{post.sourceCommits.length} source commit(s)</span>
       </div>
+      {post.generationMode === 'fallback' && post.fallbackReason ? (
+        <p className="preview-fallback-note">
+          {FALLBACK_REASON_LABELS[post.fallbackReason]}
+        </p>
+      ) : null}
       <span className="section-kicker">Preview</span>
       <h3>{post.title}</h3>
       <p>{post.summary}</p>

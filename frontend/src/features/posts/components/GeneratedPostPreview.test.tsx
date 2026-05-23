@@ -18,6 +18,7 @@ const preview = {
     },
   ],
   generationMode: 'fallback' as const,
+  fallbackReason: 'request_failed' as const,
 }
 
 describe('GeneratedPostPreview', () => {
@@ -34,6 +35,7 @@ describe('GeneratedPostPreview', () => {
     )
 
     expect(screen.getByText('fallback')).toBeInTheDocument()
+    expect(screen.getByText('OpenAI request failed.')).toBeInTheDocument()
     expect(screen.getByText('2 source commit(s)')).toBeInTheDocument()
     expect(screen.getByText('fix: save published posts')).toBeInTheDocument()
     expect(screen.getByText('fedcba6')).toBeInTheDocument()

@@ -17,4 +17,10 @@ export type GenerateDraftResult = {
     authoredAt: string
   }>
   generationMode: 'openai' | 'fallback'
+  fallbackReason?:
+    | 'missing_api_key'
+    | 'request_failed'
+    | 'empty_response'
+    | 'invalid_json'
+    | 'invalid_draft'
 }

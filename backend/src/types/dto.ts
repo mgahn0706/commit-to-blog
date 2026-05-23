@@ -44,6 +44,12 @@ export type GeneratedPostPreviewDTO = {
   tags: string[]
   sourceCommits: CommitListItemDTO[]
   generationMode: 'openai' | 'fallback'
+  fallbackReason?:
+    | 'missing_api_key'
+    | 'request_failed'
+    | 'empty_response'
+    | 'invalid_json'
+    | 'invalid_draft'
 }
 
 export type PostSourceCommitDTO = {
