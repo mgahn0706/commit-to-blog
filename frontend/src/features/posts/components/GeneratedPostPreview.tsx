@@ -4,6 +4,9 @@ type PreviewCommit = {
   message: string
 }
 
+const SHORT_SHA_LENGTH = 7
+const DEFAULT_GENERATION_MODE = 'preview'
+
 type GeneratedPostPreviewProps = {
   post: {
     title: string
@@ -26,7 +29,9 @@ export function GeneratedPostPreview({
   return (
     <article className="feature-panel">
       <div className="feature-panel__meta">
-        <span className="status-pill">{post.generationMode ?? 'preview'}</span>
+        <span className="status-pill">
+          {post.generationMode ?? DEFAULT_GENERATION_MODE}
+        </span>
         <span>{post.sourceCommits.length} source commit(s)</span>
       </div>
       <h3>{post.title}</h3>
@@ -36,7 +41,7 @@ export function GeneratedPostPreview({
           <li key={commit.sha} className="stack-card stack-card--compact">
             <div className="stack-card__row">
               <strong>{commit.message}</strong>
-              <code>{commit.shortSha ?? commit.sha.slice(0, 7)}</code>
+              <code>{commit.shortSha ?? commit.sha.slice(0, SHORT_SHA_LENGTH)}</code>
             </div>
           </li>
         ))}

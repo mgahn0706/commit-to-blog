@@ -1,27 +1,19 @@
 import { useEffect, useState } from 'react'
+import { parseBlogPostPath } from '@/app/routes'
 import { fetchPublicBlogPost } from '@/features/posts/api'
 import type { PublicBlogPostDetail } from '@/features/posts/types'
+import { getErrorMessage } from '@/lib/get-error-message'
 
 type BlogPostPageProps = {
   username?: string
   postId?: string
 }
 
-function readRouteParams(pathname: string) {
-  const match = pathname.match(/^\/blog\/([^/]+)\/([^/]+)$/)
-
-  if (!match) {
-    return null
-  }
-
-  return {
-    username: match[1],
-    postId: match[2],
-  }
-}
+const MISSING_POST_MESSAGE = 'No published post found.'
+const LOAD_POST_ERROR_MESSAGE = 'Failed to load blog post.'
 
 export function BlogPostPage({ username, postId }: BlogPostPageProps) {
-  const routeParams = readRouteParams(window.location.pathname)
+  const routeParams = parseBlogPostPath(window.location.pathname)
   const resolvedUsername = username ?? routeParams?.username ?? ''
   const resolvedPostId = postId ?? routeParams?.postId ?? ''
   const [post, setPost] = useState<PublicBlogPostDetail | null>(null)
@@ -29,7 +21,6 @@ export function BlogPostPage({ username, postId }: BlogPostPageProps) {
 
   useEffect(() => {
     if (!resolvedUsername || !resolvedPostId) {
-      setErrorMessage('No published post found.')
       return
     }
 
@@ -45,9 +36,7 @@ export function BlogPostPage({ username, postId }: BlogPostPageProps) {
         }
       } catch (error) {
         if (!cancelled) {
-          setErrorMessage(
-            error instanceof Error ? error.message : 'Failed to load blog post.',
-          )
+          setErrorMessage(getErrorMessage(error, LOAD_POST_ERROR_MESSAGE))
         }
       }
     }
@@ -59,8 +48,12 @@ export function BlogPostPage({ username, postId }: BlogPostPageProps) {
     }
   }, [resolvedPostId, resolvedUsername])
 
+  if (!resolvedUsername || !resolvedPostId) {
+    return <section className="feature-panel">{MISSING_POST_MESSAGE}</section>
+  }
+
   if (!post) {
-    return <section className="feature-panel">{errorMessage || 'No published post found.'}</section>
+    return <section className="feature-panel">{errorMessage || MISSING_POST_MESSAGE}</section>
   }
 
   return (

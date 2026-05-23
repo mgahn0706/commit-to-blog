@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { buildSavedPostsPath } from '@/app/routes'
 import { BranchSelector } from '@/features/github/components/BranchSelector'
 import { CommitList } from '@/features/github/components/CommitList'
 import { RepositorySelector } from '@/features/github/components/RepositorySelector'
@@ -10,6 +11,7 @@ import type {
   GithubCommit,
   GithubRepository,
 } from '@/features/github/types'
+import { getErrorMessage } from '@/lib/get-error-message'
 import { createSavedPost } from '@/features/posts/api'
 import { GeneratedPostPreview } from '@/features/posts/components/GeneratedPostPreview'
 
@@ -18,6 +20,12 @@ type MyBlogPageProps = {
 }
 
 const MAX_SELECTED_COMMITS = 5
+const EMPTY_SELECTION_COUNT = 0
+const REPOSITORIES_ERROR_MESSAGE = 'Failed to load repositories.'
+const BRANCHES_ERROR_MESSAGE = 'Failed to load branches.'
+const COMMITS_ERROR_MESSAGE = 'Failed to load commits.'
+const DRAFT_ERROR_MESSAGE = 'Failed to generate draft.'
+const SAVE_DRAFT_ERROR_MESSAGE = 'Failed to save draft.'
 
 export function MyBlogPage({ navigate }: MyBlogPageProps) {
   const [repositories, setRepositories] = useState<GithubRepository[]>([])
@@ -50,11 +58,7 @@ export function MyBlogPage({ navigate }: MyBlogPageProps) {
         }
       } catch (error) {
         if (!cancelled) {
-          setErrorMessage(
-            error instanceof Error
-              ? error.message
-              : 'Failed to load repositories.',
-          )
+          setErrorMessage(getErrorMessage(error, REPOSITORIES_ERROR_MESSAGE))
         }
       }
     }
@@ -91,9 +95,7 @@ export function MyBlogPage({ navigate }: MyBlogPageProps) {
         setDraft(null)
       } catch (error) {
         if (!cancelled) {
-          setErrorMessage(
-            error instanceof Error ? error.message : 'Failed to load branches.',
-          )
+          setErrorMessage(getErrorMessage(error, BRANCHES_ERROR_MESSAGE))
         }
       }
     }
@@ -128,9 +130,7 @@ export function MyBlogPage({ navigate }: MyBlogPageProps) {
         setDraft(null)
       } catch (error) {
         if (!cancelled) {
-          setErrorMessage(
-            error instanceof Error ? error.message : 'Failed to load commits.',
-          )
+          setErrorMessage(getErrorMessage(error, COMMITS_ERROR_MESSAGE))
         }
       }
     }
@@ -157,7 +157,11 @@ export function MyBlogPage({ navigate }: MyBlogPageProps) {
   }
 
   async function generateDraft() {
-    if (!selectedRepositoryId || !selectedBranch || selectedCommitShas.length === 0) {
+    if (
+      !selectedRepositoryId ||
+      !selectedBranch ||
+      selectedCommitShas.length === EMPTY_SELECTION_COUNT
+    ) {
       return
     }
 
@@ -172,9 +176,7 @@ export function MyBlogPage({ navigate }: MyBlogPageProps) {
       })
       setDraft(nextDraft)
     } catch (error) {
-      setErrorMessage(
-        error instanceof Error ? error.message : 'Failed to generate draft.',
-      )
+      setErrorMessage(getErrorMessage(error, DRAFT_ERROR_MESSAGE))
     } finally {
       setIsGenerating(false)
     }
@@ -198,11 +200,9 @@ export function MyBlogPage({ navigate }: MyBlogPageProps) {
         body: draft.body,
         tags: draft.tags,
       })
-      navigate?.('/saved-posts')
+      navigate?.(buildSavedPostsPath())
     } catch (error) {
-      setErrorMessage(
-        error instanceof Error ? error.message : 'Failed to save draft.',
-      )
+      setErrorMessage(getErrorMessage(error, SAVE_DRAFT_ERROR_MESSAGE))
     } finally {
       setIsSaving(false)
     }
@@ -232,7 +232,7 @@ export function MyBlogPage({ navigate }: MyBlogPageProps) {
             type="button"
             className="primary-button"
             onClick={() => void generateDraft()}
-            disabled={isGenerating || selectedCommitShas.length === 0}
+            disabled={isGenerating || selectedCommitShas.length === EMPTY_SELECTION_COUNT}
           >
             {isGenerating ? 'Generating...' : 'Generate draft'}
           </button>

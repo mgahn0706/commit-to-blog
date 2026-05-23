@@ -1,5 +1,15 @@
 import { useEffect, useState } from 'react'
 import './App.css'
+import {
+  buildBlogListPath,
+  buildComposePath,
+  buildSavedPostsPath,
+  isComposePath,
+  isSavedPostsPath,
+  parseBlogListPath,
+  parseBlogPostPath,
+  parseEditPostPath,
+} from '@/app/routes'
 import { BlogPostPage } from '@/app/blog/[username]/[postId]/page'
 import { BlogIndexPage } from '@/app/blog/[username]/page'
 import { MyBlogPage } from '@/app/my-blog/page'
@@ -16,34 +26,34 @@ type RouteMatch =
   | { kind: 'not-found' }
 
 function matchRoute(pathname: string): RouteMatch {
-  if (pathname === '/' || pathname === '/my-blog') {
+  if (isComposePath(pathname)) {
     return { kind: 'compose' }
   }
 
-  if (pathname === '/saved-posts') {
+  if (isSavedPostsPath(pathname)) {
     return { kind: 'saved-posts' }
   }
 
-  const editMatch = pathname.match(/^\/posts\/([^/]+)\/edit$/)
+  const editRoute = parseEditPostPath(pathname)
 
-  if (editMatch) {
-    return { kind: 'edit-post', postId: editMatch[1] }
+  if (editRoute) {
+    return { kind: 'edit-post', postId: editRoute.postId }
   }
 
-  const blogDetailMatch = pathname.match(/^\/blog\/([^/]+)\/([^/]+)$/)
+  const blogDetailRoute = parseBlogPostPath(pathname)
 
-  if (blogDetailMatch) {
+  if (blogDetailRoute) {
     return {
       kind: 'blog-detail',
-      username: blogDetailMatch[1],
-      postId: blogDetailMatch[2],
+      username: blogDetailRoute.username,
+      postId: blogDetailRoute.postId,
     }
   }
 
-  const blogListMatch = pathname.match(/^\/blog\/([^/]+)$/)
+  const blogListRoute = parseBlogListPath(pathname)
 
-  if (blogListMatch) {
-    return { kind: 'blog-list', username: blogListMatch[1] }
+  if (blogListRoute) {
+    return { kind: 'blog-list', username: blogListRoute.username }
   }
 
   return { kind: 'not-found' }
@@ -131,13 +141,17 @@ function App() {
         <div className="hero-card">
           <p>Navigation</p>
           <div className="action-row">
-            <button type="button" className="secondary-button" onClick={() => navigate('/my-blog')}>
+            <button
+              type="button"
+              className="secondary-button"
+              onClick={() => navigate(buildComposePath())}
+            >
               Compose
             </button>
             <button
               type="button"
               className="secondary-button"
-              onClick={() => navigate('/saved-posts')}
+              onClick={() => navigate(buildSavedPostsPath())}
             >
               Saved Posts
             </button>
@@ -145,7 +159,7 @@ function App() {
               <button
                 type="button"
                 className="secondary-button"
-                onClick={() => navigate(`/blog/${currentUsername}`)}
+                onClick={() => navigate(buildBlogListPath(currentUsername))}
               >
                 Internal Blog
               </button>

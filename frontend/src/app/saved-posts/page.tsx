@@ -1,11 +1,15 @@
 import { useEffect, useState } from 'react'
+import { buildBlogPostPath, buildEditPostPath } from '@/app/routes'
 import { SavedPostCard } from '@/features/posts/components/SavedPostCard'
 import { postsQueries } from '@/features/posts/queries'
 import type { SavedPostCard as SavedPostCardType } from '@/features/posts/types'
+import { getErrorMessage } from '@/lib/get-error-message'
 
 type SavedPostsPageProps = {
   navigate?: (path: string) => void
 }
+
+const SAVED_POSTS_ERROR_MESSAGE = 'Failed to load saved posts.'
 
 export function SavedPostsPage({ navigate }: SavedPostsPageProps) {
   const [posts, setPosts] = useState<SavedPostCardType[]>([])
@@ -24,9 +28,7 @@ export function SavedPostsPage({ navigate }: SavedPostsPageProps) {
         }
       } catch (error) {
         if (!cancelled) {
-          setErrorMessage(
-            error instanceof Error ? error.message : 'Failed to load saved posts.',
-          )
+          setErrorMessage(getErrorMessage(error, SAVED_POSTS_ERROR_MESSAGE))
         }
       }
     }
@@ -50,8 +52,10 @@ export function SavedPostsPage({ navigate }: SavedPostsPageProps) {
           <SavedPostCard
             key={post.id}
             post={post}
-            onEdit={(postId) => navigate?.(`/posts/${postId}/edit`)}
-            onOpenBlog={(username, postId) => navigate?.(`/blog/${username}/${postId}`)}
+            onEdit={(postId) => navigate?.(buildEditPostPath(postId))}
+            onOpenBlog={(username, postId) =>
+              navigate?.(buildBlogPostPath(username, postId))
+            }
           />
         ))}
       </div>

@@ -1,21 +1,26 @@
 import { useEffect, useState } from 'react'
+import { buildBlogListPath, parseEditPostPath } from '@/app/routes'
 import { markPostAsPublished, updatePostDraft } from '@/features/posts/mutations'
 import { PostEditor } from '@/features/posts/components/PostEditor'
 import { postsQueries } from '@/features/posts/queries'
 import type { SavedPost } from '@/features/posts/types'
+import { getErrorMessage } from '@/lib/get-error-message'
 
 type EditPostPageProps = {
   postId?: string
   navigate?: (path: string) => void
 }
 
-function readRoutePostId(pathname: string) {
-  const match = pathname.match(/^\/posts\/([^/]+)\/edit$/)
-  return match?.[1] ?? ''
-}
+const EMPTY_POST_ID = ''
+const MISSING_DRAFT_MESSAGE = 'No draft found.'
+const LOAD_POST_ERROR_MESSAGE = 'Failed to load post.'
+const SAVE_POST_ERROR_MESSAGE = 'Failed to save draft.'
+const PUBLISH_POST_ERROR_MESSAGE = 'Failed to publish post.'
+const DRAFT_UPDATED_MESSAGE = 'Draft updated.'
 
 export function EditPostPage({ postId, navigate }: EditPostPageProps) {
-  const resolvedPostId = postId ?? readRoutePostId(window.location.pathname)
+  const resolvedPostId =
+    postId ?? parseEditPostPath(window.location.pathname)?.postId ?? EMPTY_POST_ID
   const [post, setPost] = useState<SavedPost | null>(null)
   const [message, setMessage] = useState('')
   const [isSaving, setIsSaving] = useState(false)
@@ -23,7 +28,6 @@ export function EditPostPage({ postId, navigate }: EditPostPageProps) {
 
   useEffect(() => {
     if (!resolvedPostId) {
-      setMessage('No draft found.')
       return
     }
 
@@ -39,7 +43,7 @@ export function EditPostPage({ postId, navigate }: EditPostPageProps) {
         }
       } catch (error) {
         if (!cancelled) {
-          setMessage(error instanceof Error ? error.message : 'Failed to load post.')
+          setMessage(getErrorMessage(error, LOAD_POST_ERROR_MESSAGE))
         }
       }
     }
@@ -50,6 +54,10 @@ export function EditPostPage({ postId, navigate }: EditPostPageProps) {
       cancelled = true
     }
   }, [resolvedPostId])
+
+  if (!resolvedPostId) {
+    return <section className="feature-panel">{MISSING_DRAFT_MESSAGE}</section>
+  }
 
   function applyLocalChanges(
     updates: Partial<Pick<SavedPost, 'title' | 'summary' | 'body'>>,
@@ -72,9 +80,9 @@ export function EditPostPage({ postId, navigate }: EditPostPageProps) {
         body: post.body,
       })
       setPost(updatedPost)
-      setMessage('Draft updated.')
+      setMessage(DRAFT_UPDATED_MESSAGE)
     } catch (error) {
-      setMessage(error instanceof Error ? error.message : 'Failed to save draft.')
+      setMessage(getErrorMessage(error, SAVE_POST_ERROR_MESSAGE))
     } finally {
       setIsSaving(false)
     }
@@ -91,16 +99,16 @@ export function EditPostPage({ postId, navigate }: EditPostPageProps) {
     try {
       const publishedPost = await markPostAsPublished(post)
       setPost(publishedPost)
-      navigate?.(`/blog/${publishedPost.username}`)
+      navigate?.(buildBlogListPath(publishedPost.username))
     } catch (error) {
-      setMessage(error instanceof Error ? error.message : 'Failed to publish post.')
+      setMessage(getErrorMessage(error, PUBLISH_POST_ERROR_MESSAGE))
     } finally {
       setIsPublishing(false)
     }
   }
 
   if (!post) {
-    return <section className="feature-panel">{message || 'No draft found.'}</section>
+    return <section className="feature-panel">{message || MISSING_DRAFT_MESSAGE}</section>
   }
 
   return (

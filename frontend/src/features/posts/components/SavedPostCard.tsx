@@ -6,12 +6,16 @@ type SavedPostCardProps = {
   onOpenBlog: (username: string, postId: string) => void
 }
 
+const NO_SOURCE_COMMITS_LABEL = 'No source commits'
+const NO_SUMMARY_LABEL = 'No summary yet.'
+const ADDITIONAL_COMMITS_OFFSET = 1
+
 export function SavedPostCard({ post, onEdit, onOpenBlog }: SavedPostCardProps) {
   const sourceCommitLabel = post.sourceCommit
     ? post.sourceCommitCount > 1
-      ? `${post.sourceCommit.message} +${post.sourceCommitCount - 1} more`
+      ? `${post.sourceCommit.message} +${post.sourceCommitCount - ADDITIONAL_COMMITS_OFFSET} more`
       : post.sourceCommit.message
-    : 'No source commits'
+    : NO_SOURCE_COMMITS_LABEL
 
   return (
     <article className="stack-card">
@@ -19,7 +23,7 @@ export function SavedPostCard({ post, onEdit, onOpenBlog }: SavedPostCardProps) 
         <strong>{post.title}</strong>
         <span className="status-pill">{post.status}</span>
       </div>
-      <p>{post.summary || 'No summary yet.'}</p>
+      <p>{post.summary || NO_SUMMARY_LABEL}</p>
       <small>{sourceCommitLabel}</small>
       <div className="action-row">
         <button type="button" className="secondary-button" onClick={() => onEdit(post.id)}>

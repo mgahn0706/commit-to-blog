@@ -1,11 +1,15 @@
 import { useEffect, useState } from 'react'
+import { buildBlogPostPath } from '@/app/routes'
 import { fetchPublicBlogPosts } from '@/features/posts/api'
 import type { PublicBlogPostListItem } from '@/features/posts/types'
+import { getErrorMessage } from '@/lib/get-error-message'
 
 type BlogIndexPageProps = {
   username: string
   navigate: (path: string) => void
 }
+
+const BLOG_POSTS_ERROR_MESSAGE = 'Failed to load blog posts.'
 
 export function BlogIndexPage({ username, navigate }: BlogIndexPageProps) {
   const [posts, setPosts] = useState<PublicBlogPostListItem[]>([])
@@ -24,9 +28,7 @@ export function BlogIndexPage({ username, navigate }: BlogIndexPageProps) {
         }
       } catch (error) {
         if (!cancelled) {
-          setErrorMessage(
-            error instanceof Error ? error.message : 'Failed to load blog posts.',
-          )
+          setErrorMessage(getErrorMessage(error, BLOG_POSTS_ERROR_MESSAGE))
         }
       }
     }
@@ -58,7 +60,7 @@ export function BlogIndexPage({ username, navigate }: BlogIndexPageProps) {
             <button
               type="button"
               className="secondary-button"
-              onClick={() => navigate(`/blog/${username}/${post.id}`)}
+              onClick={() => navigate(buildBlogPostPath(username, post.id))}
             >
               Open post
             </button>
