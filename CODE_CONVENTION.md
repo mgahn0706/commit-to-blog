@@ -14,12 +14,15 @@ Use this document as the default coding rule for this project.
 - One commit should contain one clear purpose.
 - Do not mix unrelated refactoring with feature work.
 - If a change is hard to explain in one sentence, the commit is probably too large.
+- When a commit directly changes frontend features or components, validate it with the React Testing Library suite by running `npm test` in `frontend` before commit.
+- If that test run fails, fix or refactor the code before committing.
 
 ## React Rule
 
 ### Hooks
 
 - Do not use `useEffect` unless it is truly needed for syncing with an external system or async lifecycle work.
+- In UI components and route pages, avoid direct `useEffect` usage whenever possible by moving that logic into dedicated custom hooks in separate files.
 - Do not use `useMemo` unless there is a clear calculation or reference-stability reason.
 - Do not use `useCallback` unless it solves a real render or dependency problem.
 - Do not add hooks preemptively.
