@@ -1,11 +1,11 @@
 import { useEffect } from 'react'
-import { useBranchSelection } from './use-branch-selection'
-import { useCommitFeed } from './use-commit-feed'
-import { useCommitSelection } from './use-commit-selection'
-import { useDraftGeneration } from './use-draft-generation'
-import { useDraftPreview } from './use-draft-preview'
-import { useDraftSave } from './use-draft-save'
-import { useRepositorySelection } from './use-repository-selection'
+import { useBranchSelection } from './useBranchSelection'
+import { useCommitFeed } from './useCommitFeed'
+import { useCommitSelection } from './useCommitSelection'
+import { useDraftGeneration } from './useDraftGeneration'
+import { useDraftPreview } from './useDraftPreview'
+import { useDraftSave } from './useDraftSave'
+import { useRepositorySelection } from './useRepositorySelection'
 
 export function useComposeWorkspace(onSaveSuccess?: () => void) {
   const {

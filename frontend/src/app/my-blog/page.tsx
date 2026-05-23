@@ -2,7 +2,7 @@ import { buildSavedPostsPath } from '@/app/routes'
 import { BranchSelector } from '@/features/github/components/BranchSelector'
 import { CommitList } from '@/features/github/components/CommitList'
 import { RepositorySelector } from '@/features/github/components/RepositorySelector'
-import { useComposeWorkspace } from '@/features/compose/use-compose-workspace'
+import { useComposeWorkspace } from '@/features/compose/useComposeWorkspace'
 import { GeneratedPostPreview } from '@/features/posts/components/GeneratedPostPreview'
 
 type MyBlogPageProps = {

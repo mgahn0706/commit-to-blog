@@ -1,6 +1,6 @@
 import { act, renderHook } from '@testing-library/react'
 import { describe, expect, it } from 'vitest'
-import { useCommitSelection } from './use-commit-selection'
+import { useCommitSelection } from './useCommitSelection'
 
 describe('useCommitSelection', () => {
   it('toggles commit selection and enforces the max size', () => {
