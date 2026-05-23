@@ -613,6 +613,13 @@
   gap: 32px;
 }
 
+.footer-status {
+  max-width: 34ch;
+  font-size: 0.9rem;
+  line-height: 1.6;
+  color: var(--text-soft);
+}
+
 @media (max-width: 1120px) {
   .workspace-layout {
     grid-template-columns: 1fr;

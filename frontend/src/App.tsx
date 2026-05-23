@@ -8,7 +8,7 @@ import { useCurrentUsername } from '@/features/auth/use-current-username'
 const APP_NAME = 'Smart Blog'
 const FOOTER_TITLE = 'SMART_BLOG_SYSTEM'
 const FOOTER_COPY = 'Smart Blog Automation. Optimized for developers.'
-const FOOTER_LINK_LABELS = ['Documentation', 'GitHub Support', 'Privacy Policy']
+const FOOTER_STATUS_LABEL = 'Repository-driven draft generation and internal publishing.'
 
 function App() {
   const { route, navigate } = useAppRouter()
@@ -52,11 +52,7 @@ function App() {
           <p className="footer-title">{FOOTER_TITLE}</p>
           <p className="footer-copy">{FOOTER_COPY}</p>
         </div>
-        <div className="footer-links">
-          {FOOTER_LINK_LABELS.map((label) => (
-            <span key={label}>{label}</span>
-          ))}
-        </div>
+        <p className="footer-status">{FOOTER_STATUS_LABEL}</p>
       </footer>
     </main>
   )

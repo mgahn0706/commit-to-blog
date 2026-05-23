@@ -40,10 +40,5 @@ export function buildPrimaryNavItems({
       onClick: currentUsername ? () => navigate(buildBlogListPath(currentUsername)) : undefined,
       isDisabled: !currentUsername,
     },
-    {
-      label: 'Settings',
-      isActive: false,
-      isDisabled: true,
-    },
   ]
 }
