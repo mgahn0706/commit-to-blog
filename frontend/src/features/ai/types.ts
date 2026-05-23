@@ -1,10 +1,20 @@
-import type { GithubCommit } from '@/features/github/types'
-import type { SavedPost } from '@/features/posts/types'
-
 export type GenerateDraftInput = {
-  repositoryName: string
+  repositoryId: string
   branchName: string
-  commits: GithubCommit[]
+  commitShas: string[]
 }
 
-export type GenerateDraftResult = SavedPost
+export type GenerateDraftResult = {
+  title: string
+  summary: string
+  body: string
+  tags: string[]
+  sourceCommits: Array<{
+    sha: string
+    shortSha: string
+    message: string
+    authorName: string
+    authoredAt: string
+  }>
+  generationMode: 'openai' | 'fallback'
+}

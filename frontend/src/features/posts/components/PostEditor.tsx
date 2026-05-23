@@ -2,29 +2,69 @@ import type { SavedPost } from '../types'
 
 type PostEditorProps = {
   post: SavedPost
+  onChange?: (updates: Partial<Pick<SavedPost, 'title' | 'summary' | 'body'>>) => void
+  onSave?: () => void
+  onPublish?: () => void
+  isSaving?: boolean
+  isPublishing?: boolean
+  message?: string
 }
 
-export function PostEditor({ post }: PostEditorProps) {
+export function PostEditor({
+  post,
+  onChange,
+  onSave,
+  onPublish,
+  isSaving,
+  isPublishing,
+  message,
+}: PostEditorProps) {
   return (
     <section className="feature-panel">
       <div className="editor-grid">
         <label className="feature-field">
           <span>Title</span>
-          <input value={post.title} readOnly />
+          <input
+            value={post.title}
+            onChange={(event) => onChange?.({ title: event.target.value })}
+          />
         </label>
         <label className="feature-field">
           <span>Summary</span>
-          <textarea value={post.summary} readOnly rows={3} />
+          <textarea
+            value={post.summary ?? ''}
+            onChange={(event) => onChange?.({ summary: event.target.value })}
+            rows={3}
+          />
         </label>
         <label className="feature-field">
           <span>Body</span>
-          <textarea value={post.body} readOnly rows={7} />
+          <textarea
+            value={post.body}
+            onChange={(event) => onChange?.({ body: event.target.value })}
+            rows={10}
+          />
         </label>
       </div>
-      <p className="feature-note">
-        Minimum feature scaffold: editor UI is present and ready to be wired to
-        mutations.
-      </p>
+      <div className="action-row">
+        <button
+          type="button"
+          className="primary-button"
+          onClick={onSave}
+          disabled={!onSave || isSaving}
+        >
+          {isSaving ? 'Saving...' : 'Save changes'}
+        </button>
+        <button
+          type="button"
+          className="secondary-button"
+          onClick={onPublish}
+          disabled={!onPublish || isPublishing || !post.title.trim() || !post.body.trim()}
+        >
+          {isPublishing ? 'Publishing...' : 'Publish'}
+        </button>
+      </div>
+      {message ? <p className="feature-note">{message}</p> : null}
     </section>
   )
 }

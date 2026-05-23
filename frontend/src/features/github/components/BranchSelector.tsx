@@ -17,7 +17,8 @@ export function BranchSelector({
       <select value={value} onChange={(event) => onChange(event.target.value)}>
         {branches.map((branch) => (
           <option key={branch.name} value={branch.name}>
-            {branch.name} ({branch.commitCount})
+            {branch.name}
+            {branch.isDefault ? ' (default)' : ''}
           </option>
         ))}
       </select>

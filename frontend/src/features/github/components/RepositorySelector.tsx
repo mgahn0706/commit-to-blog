@@ -17,7 +17,7 @@ export function RepositorySelector({
       <select value={value} onChange={(event) => onChange(event.target.value)}>
         {repositories.map((repository) => (
           <option key={repository.id} value={repository.id}>
-            {repository.owner}/{repository.name}
+            {repository.fullName}
           </option>
         ))}
       </select>

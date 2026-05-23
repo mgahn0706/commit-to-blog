@@ -2,19 +2,19 @@ export type GithubRepository = {
   id: string
   name: string
   owner: string
+  fullName: string
   defaultBranch: string
-  description: string
 }
 
 export type GithubBranch = {
   name: string
-  commitCount: number
-  lastUpdated: string
+  isDefault: boolean
 }
 
 export type GithubCommit = {
   sha: string
+  shortSha: string
   message: string
-  author: string
-  committedAt: string
+  authorName: string
+  authoredAt: string
 }

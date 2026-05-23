@@ -3,37 +3,67 @@ import { BranchSelector } from '@/features/github/components/BranchSelector'
 import { CommitList } from '@/features/github/components/CommitList'
 import { RepositorySelector } from '@/features/github/components/RepositorySelector'
 import { aiMutations } from '@/features/ai/mutations'
-import { GeneratedPostPreview } from '@/features/posts/components/GeneratedPostPreview'
+import type { GenerateDraftResult } from '@/features/ai/types'
 import { githubQueries } from '@/features/github/queries'
 import type {
   GithubBranch,
   GithubCommit,
   GithubRepository,
 } from '@/features/github/types'
-import type { SavedPost } from '@/features/posts/types'
+import { createSavedPost } from '@/features/posts/api'
+import { GeneratedPostPreview } from '@/features/posts/components/GeneratedPostPreview'
 
-export function MyBlogPage() {
+type MyBlogPageProps = {
+  navigate?: (path: string) => void
+}
+
+const MAX_SELECTED_COMMITS = 5
+
+export function MyBlogPage({ navigate }: MyBlogPageProps) {
   const [repositories, setRepositories] = useState<GithubRepository[]>([])
   const [branches, setBranches] = useState<GithubBranch[]>([])
   const [commits, setCommits] = useState<GithubCommit[]>([])
   const [selectedRepositoryId, setSelectedRepositoryId] = useState('')
   const [selectedBranch, setSelectedBranch] = useState('')
-  const [draft, setDraft] = useState<SavedPost | null>(null)
+  const [selectedCommitShas, setSelectedCommitShas] = useState<string[]>([])
+  const [draft, setDraft] = useState<GenerateDraftResult | null>(null)
+  const [errorMessage, setErrorMessage] = useState('')
+  const [isGenerating, setIsGenerating] = useState(false)
+  const [isSaving, setIsSaving] = useState(false)
 
   useEffect(() => {
+    let cancelled = false
+
     async function loadRepositories() {
-      const repositoryItems = await githubQueries.repositories()
-      setRepositories(repositoryItems)
-      const initialRepository = repositoryItems[0]
+      try {
+        const repositoryItems = await githubQueries.repositories()
 
-      if (!initialRepository) {
-        return
+        if (cancelled) {
+          return
+        }
+
+        setRepositories(repositoryItems)
+        const initialRepository = repositoryItems[0]
+
+        if (initialRepository) {
+          setSelectedRepositoryId(initialRepository.id)
+        }
+      } catch (error) {
+        if (!cancelled) {
+          setErrorMessage(
+            error instanceof Error
+              ? error.message
+              : 'Failed to load repositories.',
+          )
+        }
       }
-
-      setSelectedRepositoryId(initialRepository.id)
     }
 
     void loadRepositories()
+
+    return () => {
+      cancelled = true
+    }
   }, [])
 
   useEffect(() => {
@@ -41,13 +71,38 @@ export function MyBlogPage() {
       return
     }
 
+    let cancelled = false
+
     async function loadBranches() {
-      const branchItems = await githubQueries.branches(selectedRepositoryId)
-      setBranches(branchItems)
-      setSelectedBranch(branchItems[0]?.name ?? '')
+      try {
+        const branchItems = await githubQueries.branches(selectedRepositoryId)
+
+        if (cancelled) {
+          return
+        }
+
+        setBranches(branchItems)
+        const defaultBranch =
+          branchItems.find((branch) => branch.isDefault)?.name ??
+          branchItems[0]?.name ??
+          ''
+        setSelectedBranch(defaultBranch)
+        setSelectedCommitShas([])
+        setDraft(null)
+      } catch (error) {
+        if (!cancelled) {
+          setErrorMessage(
+            error instanceof Error ? error.message : 'Failed to load branches.',
+          )
+        }
+      }
     }
 
     void loadBranches()
+
+    return () => {
+      cancelled = true
+    }
   }, [selectedRepositoryId])
 
   useEffect(() => {
@@ -55,30 +110,103 @@ export function MyBlogPage() {
       return
     }
 
+    let cancelled = false
+
     async function loadCommits() {
-      const commitItems = await githubQueries.commits(
-        selectedRepositoryId,
-        selectedBranch,
-      )
-      setCommits(commitItems)
-      const repository = repositories.find((item) => item.id === selectedRepositoryId)
+      try {
+        const nextCommits = await githubQueries.commits(
+          selectedRepositoryId,
+          selectedBranch,
+        )
 
-      if (!repository || commitItems.length === 0) {
+        if (cancelled) {
+          return
+        }
+
+        setCommits(nextCommits)
+        setSelectedCommitShas([])
         setDraft(null)
-        return
+      } catch (error) {
+        if (!cancelled) {
+          setErrorMessage(
+            error instanceof Error ? error.message : 'Failed to load commits.',
+          )
+        }
       }
-
-      const generatedDraft = await aiMutations.generateDraft({
-        repositoryName: repository.name,
-        branchName: selectedBranch,
-        commits: commitItems.slice(0, 2),
-      })
-
-      setDraft(generatedDraft)
     }
 
     void loadCommits()
-  }, [repositories, selectedRepositoryId, selectedBranch])
+
+    return () => {
+      cancelled = true
+    }
+  }, [selectedRepositoryId, selectedBranch])
+
+  function toggleCommitSelection(sha: string) {
+    setSelectedCommitShas((current) => {
+      if (current.includes(sha)) {
+        return current.filter((item) => item !== sha)
+      }
+
+      if (current.length >= MAX_SELECTED_COMMITS) {
+        return current
+      }
+
+      return [...current, sha]
+    })
+  }
+
+  async function generateDraft() {
+    if (!selectedRepositoryId || !selectedBranch || selectedCommitShas.length === 0) {
+      return
+    }
+
+    setIsGenerating(true)
+    setErrorMessage('')
+
+    try {
+      const nextDraft = await aiMutations.generateDraft({
+        repositoryId: selectedRepositoryId,
+        branchName: selectedBranch,
+        commitShas: selectedCommitShas,
+      })
+      setDraft(nextDraft)
+    } catch (error) {
+      setErrorMessage(
+        error instanceof Error ? error.message : 'Failed to generate draft.',
+      )
+    } finally {
+      setIsGenerating(false)
+    }
+  }
+
+  async function saveDraft() {
+    if (!draft || !selectedRepositoryId || !selectedBranch) {
+      return
+    }
+
+    setIsSaving(true)
+    setErrorMessage('')
+
+    try {
+      await createSavedPost({
+        repositoryId: selectedRepositoryId,
+        branchName: selectedBranch,
+        commitShas: selectedCommitShas,
+        title: draft.title,
+        summary: draft.summary,
+        body: draft.body,
+        tags: draft.tags,
+      })
+      navigate?.('/saved-posts')
+    } catch (error) {
+      setErrorMessage(
+        error instanceof Error ? error.message : 'Failed to save draft.',
+      )
+    } finally {
+      setIsSaving(false)
+    }
+  }
 
   return (
     <section className="feature-layout">
@@ -96,12 +224,35 @@ export function MyBlogPage() {
           />
         </div>
         <p className="feature-note">
-          Minimum flow: select a repository and branch, then inspect recent
-          commits and the generated AI draft preview.
+          Select a repository, branch, and up to {MAX_SELECTED_COMMITS} commits,
+          then generate and save a draft.
         </p>
+        <div className="action-row">
+          <button
+            type="button"
+            className="primary-button"
+            onClick={() => void generateDraft()}
+            disabled={isGenerating || selectedCommitShas.length === 0}
+          >
+            {isGenerating ? 'Generating...' : 'Generate draft'}
+          </button>
+          <span>{selectedCommitShas.length} commit(s) selected</span>
+        </div>
       </div>
-      <CommitList commits={commits} />
-      {draft ? <GeneratedPostPreview post={draft} /> : null}
+      {errorMessage ? <p className="error-text">{errorMessage}</p> : null}
+      <CommitList
+        commits={commits}
+        selectedCommitShas={selectedCommitShas}
+        onToggleCommit={toggleCommitSelection}
+      />
+      {draft ? (
+        <GeneratedPostPreview
+          post={draft}
+          onSave={() => void saveDraft()}
+          onRegenerate={() => void generateDraft()}
+          isSaving={isSaving}
+        />
+      ) : null}
     </section>
   )
 }
