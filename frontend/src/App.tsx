@@ -33,7 +33,6 @@ type NavItem = {
 }
 
 const APP_NAME = 'Smart Blog'
-const DEFAULT_ACCOUNT_LABEL = 'Account'
 const FOOTER_TITLE = 'SMART_BLOG_SYSTEM'
 const FOOTER_COPY = 'Smart Blog Automation. Optimized for developers.'
 const FOOTER_LINK_LABELS = ['Documentation', 'GitHub Support', 'Privacy Policy']
@@ -187,12 +186,6 @@ function App() {
                 </button>
               ))}
             </nav>
-          </div>
-          <div className="app-header__right">
-            <span className="account-label">{currentUsername || DEFAULT_ACCOUNT_LABEL}</span>
-            <button type="button" className="profile-button" aria-label="Account">
-              <span className="profile-button__ring" />
-            </button>
           </div>
         </div>
       </header>
