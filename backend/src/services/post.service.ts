@@ -29,7 +29,7 @@ class PostService {
     input: {
       repositoryId: string
       branchName: string
-      commitSha: string
+      commitShas: string[]
       title: string
       summary?: string
       body: string
@@ -49,26 +49,32 @@ class PostService {
       defaultBranch: githubRepository.defaultBranch,
     })
 
-    let commit = await commitRepository.findByRepositoryAndSha(
-      repository.id,
-      input.commitSha,
+    const commits = await Promise.all(
+      input.commitShas.map(async (commitSha) => {
+        const existingCommit = await commitRepository.findByRepositoryAndSha(
+          repository.id,
+          commitSha,
+        )
+
+        if (existingCommit) {
+          return existingCommit
+        }
+
+        const commitDetail = await githubService.getCommitDetail(
+          input.repositoryId,
+          commitSha,
+        )
+
+        return commitRepository.upsertCommit({
+          repositoryId: repository.id,
+          sha: commitDetail.sha,
+          message: commitDetail.message,
+          authorName: commitDetail.authorName,
+          authorEmail: commitDetail.authorEmail,
+          authoredAt: new Date(commitDetail.authoredAt),
+        })
+      }),
     )
-
-    if (!commit) {
-      const commitDetail = await githubService.getCommitDetail(
-        input.repositoryId,
-        input.commitSha,
-      )
-
-      commit = await commitRepository.upsertCommit({
-        repositoryId: repository.id,
-        sha: commitDetail.sha,
-        message: commitDetail.message,
-        authorName: commitDetail.authorName,
-        authorEmail: commitDetail.authorEmail,
-        authoredAt: new Date(commitDetail.authoredAt),
-      })
-    }
 
     const post = await postRepository.createPost({
       userId: user.id,
@@ -77,8 +83,11 @@ class PostService {
       summary: input.summary,
       body: input.body,
       tags: input.tags,
-      commitId: commit.id,
-      sourceBranchName: input.branchName,
+      sourceCommits: commits.map((commit, index) => ({
+        commitId: commit.id,
+        sourceBranchName: input.branchName,
+        order: index,
+      })),
     })
 
     return mapPostToDetailDTO(post)

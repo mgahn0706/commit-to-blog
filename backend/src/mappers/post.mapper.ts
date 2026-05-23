@@ -64,16 +64,22 @@ export function mapPostSourceCommitToDTO(
 }
 
 export function mapPostToSavedPostCardDTO(post: PostWithRelations): SavedPostCardDTO {
+  const sortedSourceCommits = [...post.sourceCommits].sort(
+    (left, right) => left.order - right.order,
+  )
+
   return {
     id: post.id,
     status: post.status,
+    username: post.user?.username ?? '',
     title: post.content?.title ?? '',
     summary: post.content?.summary ?? null,
     updatedAt: post.updatedAt.toISOString(),
     publishedAt: post.publishedAt?.toISOString() ?? null,
-    sourceCommit: post.sourceCommits[0]
-      ? mapPostSourceCommitToDTO(post.sourceCommits[0])
+    sourceCommit: sortedSourceCommits[0]
+      ? mapPostSourceCommitToDTO(sortedSourceCommits[0])
       : null,
+    sourceCommitCount: sortedSourceCommits.length,
   }
 }
 
@@ -81,6 +87,7 @@ export function mapPostToDetailDTO(post: PostWithRelations): PostDetailDTO {
   return {
     id: post.id,
     status: post.status,
+    username: post.user?.username ?? '',
     title: post.content?.title ?? '',
     summary: post.content?.summary ?? null,
     body: post.content?.body ?? '',

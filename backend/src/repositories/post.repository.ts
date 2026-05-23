@@ -27,8 +27,11 @@ export const postRepository = {
     summary?: string
     body: string
     tags?: string[]
-    commitId: string
-    sourceBranchName: string
+    sourceCommits: Array<{
+      commitId: string
+      sourceBranchName: string
+      order: number
+    }>
   }) {
     return prisma.post.create({
       data: {
@@ -43,11 +46,7 @@ export const postRepository = {
           },
         },
         sourceCommits: {
-          create: {
-            commitId: input.commitId,
-            sourceBranchName: input.sourceBranchName,
-            order: 0,
-          },
+          create: input.sourceCommits,
         },
       },
       include: postInclude,

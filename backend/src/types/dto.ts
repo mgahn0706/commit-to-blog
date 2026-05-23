@@ -42,6 +42,8 @@ export type GeneratedPostPreviewDTO = {
   summary: string
   body: string
   tags: string[]
+  sourceCommits: CommitListItemDTO[]
+  generationMode: 'openai' | 'fallback'
 }
 
 export type PostSourceCommitDTO = {
@@ -58,16 +60,19 @@ export type PostSourceCommitDTO = {
 export type SavedPostCardDTO = {
   id: string
   status: 'DRAFT' | 'PUBLISHED'
+  username: string
   title: string
   summary?: string | null
   updatedAt: string
   publishedAt?: string | null
   sourceCommit: PostSourceCommitDTO | null
+  sourceCommitCount: number
 }
 
 export type PostDetailDTO = {
   id: string
   status: 'DRAFT' | 'PUBLISHED'
+  username: string
   title: string
   summary?: string | null
   body: string

@@ -7,7 +7,7 @@ export const aiController = {
       currentUser: request.currentUser!,
       repositoryId: request.body.repositoryId,
       branchName: request.body.branchName,
-      commitSha: request.body.commitSha,
+      commitShas: request.body.commitShas,
     })
 
     response.json(preview)

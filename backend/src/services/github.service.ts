@@ -1,3 +1,4 @@
+import { env } from '../config/env.js'
 import { mapCommitDetailToDTO, mapCommitToListItemDTO } from '../mappers/commit.mapper.js'
 import { mapGithubRepositoryToDTO } from '../mappers/repository.mapper.js'
 import type {
@@ -7,6 +8,7 @@ import type {
   RepositoryDTO,
 } from '../types/dto.js'
 import { HttpError } from '../utils/httpError.js'
+import { githubDemo } from './github-demo.js'
 
 type GithubRepositoryResponse = {
   id: number
@@ -49,17 +51,19 @@ type GithubCommitDetailResponse = {
 }
 
 class GithubService {
-  private async request<T>(path: string) {
-    const token = process.env.GITHUB_TOKEN
+  private get isDemoMode() {
+    return !env.GITHUB_TOKEN
+  }
 
-    if (!token) {
-      throw new HttpError(500, 'InternalServerError', 'Missing GITHUB_TOKEN.')
+  private async request<T>(path: string) {
+    if (this.isDemoMode) {
+      throw new HttpError(500, 'InternalServerError', 'GitHub live mode is disabled.')
     }
 
     const response = await fetch(`https://api.github.com${path}`, {
       headers: {
         Accept: 'application/vnd.github+json',
-        Authorization: `Bearer ${token}`,
+        Authorization: `Bearer ${env.GITHUB_TOKEN}`,
         'User-Agent': 'smart-blog-bff',
       },
     })
@@ -84,6 +88,10 @@ class GithubService {
   }
 
   async listRepositories(): Promise<RepositoryDTO[]> {
+    if (this.isDemoMode) {
+      return githubDemo.listRepositories()
+    }
+
     const repositories = await this.request<GithubRepositoryResponse[]>(
       '/user/repos?per_page=100&sort=updated',
     )
@@ -115,6 +123,11 @@ class GithubService {
 
   async listBranches(repositoryId: string): Promise<BranchDTO[]> {
     const repository = await this.getRepositoryOrThrow(repositoryId)
+
+    if (this.isDemoMode) {
+      return githubDemo.listBranches(repositoryId)
+    }
+
     const branches = await this.request<GithubBranchResponse[]>(
       `/repos/${repository.owner}/${repository.name}/branches?per_page=100`,
     )
@@ -130,6 +143,11 @@ class GithubService {
     branchName: string,
   ): Promise<CommitListItemDTO[]> {
     const repository = await this.getRepositoryOrThrow(repositoryId)
+
+    if (this.isDemoMode) {
+      return githubDemo.listCommits(repositoryId, branchName)
+    }
+
     const commits = await this.request<GithubCommitListResponse>(
       `/repos/${repository.owner}/${repository.name}/commits?sha=${encodeURIComponent(branchName)}&per_page=30`,
     )
@@ -149,6 +167,17 @@ class GithubService {
     sha: string,
   ): Promise<CommitDetailDTO & { authorEmail?: string | null }> {
     const repository = await this.getRepositoryOrThrow(repositoryId)
+
+    if (this.isDemoMode) {
+      const commit = githubDemo.getCommitDetail(repositoryId, sha)
+
+      if (!commit) {
+        throw new HttpError(404, 'NotFound', 'Demo commit not found.')
+      }
+
+      return commit
+    }
+
     const commit = await this.request<GithubCommitDetailResponse>(
       `/repos/${repository.owner}/${repository.name}/commits/${sha}`,
     )

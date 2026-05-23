@@ -11,7 +11,7 @@ export const postIdParamsSchema = z.object({
 export const createPostSchema = z.object({
   repositoryId: z.string().min(1),
   branchName: z.string().min(1),
-  commitSha: z.string().min(1),
+  commitShas: z.array(z.string().min(1)).min(1).max(5),
   title: z.string().min(1),
   summary: z.string().optional(),
   body: z.string().min(1),
