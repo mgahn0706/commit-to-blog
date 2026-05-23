@@ -22,11 +22,11 @@ export function CommitList({
                 checked={selectedCommitShas.includes(commit.sha)}
                 onChange={() => onToggleCommit(commit.sha)}
               />
-              <strong>{commit.message}</strong>
+              <span className="stack-card__title">{commit.message}</span>
             </label>
             <code>{commit.shortSha}</code>
           </div>
-          <p>
+          <p className="stack-card__meta">
             {commit.authorName} · {new Date(commit.authoredAt).toLocaleString()}
           </p>
         </li>

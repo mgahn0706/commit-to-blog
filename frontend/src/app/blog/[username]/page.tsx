@@ -1,44 +1,13 @@
-import { useEffect, useState } from 'react'
 import { buildBlogPostPath } from '@/app/routes'
-import { fetchPublicBlogPosts } from '@/features/posts/api'
-import type { PublicBlogPostListItem } from '@/features/posts/types'
-import { getErrorMessage } from '@/lib/get-error-message'
+import { usePublicBlogPosts } from '@/features/posts/use-public-blog-posts'
 
 type BlogIndexPageProps = {
   username: string
   navigate: (path: string) => void
 }
 
-const BLOG_POSTS_ERROR_MESSAGE = 'Failed to load blog posts.'
-
 export function BlogIndexPage({ username, navigate }: BlogIndexPageProps) {
-  const [posts, setPosts] = useState<PublicBlogPostListItem[]>([])
-  const [errorMessage, setErrorMessage] = useState('')
-
-  useEffect(() => {
-    let cancelled = false
-
-    async function loadPosts() {
-      try {
-        const nextPosts = await fetchPublicBlogPosts(username)
-
-        if (!cancelled) {
-          setPosts(nextPosts)
-          setErrorMessage('')
-        }
-      } catch (error) {
-        if (!cancelled) {
-          setErrorMessage(getErrorMessage(error, BLOG_POSTS_ERROR_MESSAGE))
-        }
-      }
-    }
-
-    void loadPosts()
-
-    return () => {
-      cancelled = true
-    }
-  }, [username])
+  const { posts, errorMessage } = usePublicBlogPosts(username)
 
   return (
     <section className="feature-layout">

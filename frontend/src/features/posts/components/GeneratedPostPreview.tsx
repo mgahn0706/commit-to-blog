@@ -36,13 +36,14 @@ export function GeneratedPostPreview({
         </span>
         <span>{post.sourceCommits.length} source commit(s)</span>
       </div>
+      <span className="section-kicker">Preview</span>
       <h3>{post.title}</h3>
       <p>{post.summary}</p>
       <ul className="stack-list compact-list">
         {post.sourceCommits.map((commit) => (
           <li key={commit.sha} className="stack-card stack-card--compact">
             <div className="stack-card__row">
-              <strong>{commit.message}</strong>
+              <span className="stack-card__title">{commit.message}</span>
               <code>{commit.shortSha ?? commit.sha.slice(0, SHORT_SHA_LENGTH)}</code>
             </div>
           </li>

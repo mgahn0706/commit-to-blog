@@ -1,29 +1,16 @@
-import { useEffect, useState } from 'react'
 import './App.css'
 import {
   buildBlogListPath,
   buildComposePath,
   buildSavedPostsPath,
-  isComposePath,
-  isSavedPostsPath,
-  parseBlogListPath,
-  parseBlogPostPath,
-  parseEditPostPath,
 } from '@/app/routes'
+import { useAppRouter } from '@/app/use-app-router'
 import { BlogPostPage } from '@/app/blog/[username]/[postId]/page'
 import { BlogIndexPage } from '@/app/blog/[username]/page'
 import { MyBlogPage } from '@/app/my-blog/page'
 import { EditPostPage } from '@/app/posts/[postId]/edit/page'
 import { SavedPostsPage } from '@/app/saved-posts/page'
-import { fetchCurrentUser } from '@/features/auth/api'
-
-type RouteMatch =
-  | { kind: 'compose' }
-  | { kind: 'saved-posts' }
-  | { kind: 'edit-post'; postId: string }
-  | { kind: 'blog-list'; username: string }
-  | { kind: 'blog-detail'; username: string; postId: string }
-  | { kind: 'not-found' }
+import { useCurrentUsername } from '@/features/auth/use-current-username'
 
 type NavItem = {
   label: string
@@ -37,89 +24,9 @@ const FOOTER_TITLE = 'SMART_BLOG_SYSTEM'
 const FOOTER_COPY = 'Smart Blog Automation. Optimized for developers.'
 const FOOTER_LINK_LABELS = ['Documentation', 'GitHub Support', 'Privacy Policy']
 
-function matchRoute(pathname: string): RouteMatch {
-  if (isComposePath(pathname)) {
-    return { kind: 'compose' }
-  }
-
-  if (isSavedPostsPath(pathname)) {
-    return { kind: 'saved-posts' }
-  }
-
-  const editRoute = parseEditPostPath(pathname)
-
-  if (editRoute) {
-    return { kind: 'edit-post', postId: editRoute.postId }
-  }
-
-  const blogDetailRoute = parseBlogPostPath(pathname)
-
-  if (blogDetailRoute) {
-    return {
-      kind: 'blog-detail',
-      username: blogDetailRoute.username,
-      postId: blogDetailRoute.postId,
-    }
-  }
-
-  const blogListRoute = parseBlogListPath(pathname)
-
-  if (blogListRoute) {
-    return { kind: 'blog-list', username: blogListRoute.username }
-  }
-
-  return { kind: 'not-found' }
-}
-
 function App() {
-  const [pathname, setPathname] = useState(window.location.pathname)
-  const [currentUsername, setCurrentUsername] = useState('')
-  const route = matchRoute(pathname)
-
-  useEffect(() => {
-    function handlePopstate() {
-      setPathname(window.location.pathname)
-    }
-
-    window.addEventListener('popstate', handlePopstate)
-
-    return () => {
-      window.removeEventListener('popstate', handlePopstate)
-    }
-  }, [])
-
-  useEffect(() => {
-    let cancelled = false
-
-    async function loadCurrentUser() {
-      try {
-        const user = await fetchCurrentUser()
-
-        if (!cancelled) {
-          setCurrentUsername(user.username)
-        }
-      } catch {
-        if (!cancelled) {
-          setCurrentUsername('')
-        }
-      }
-    }
-
-    void loadCurrentUser()
-
-    return () => {
-      cancelled = true
-    }
-  }, [])
-
-  function navigate(path: string) {
-    if (path === window.location.pathname) {
-      return
-    }
-
-    window.history.pushState({}, '', path)
-    setPathname(path)
-  }
+  const { route, navigate } = useAppRouter()
+  const currentUsername = useCurrentUsername()
 
   const navItems: NavItem[] = [
     {

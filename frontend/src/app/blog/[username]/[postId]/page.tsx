@@ -1,8 +1,5 @@
-import { useEffect, useState } from 'react'
 import { parseBlogPostPath } from '@/app/routes'
-import { fetchPublicBlogPost } from '@/features/posts/api'
-import type { PublicBlogPostDetail } from '@/features/posts/types'
-import { getErrorMessage } from '@/lib/get-error-message'
+import { usePublicBlogPost } from '@/features/posts/use-public-blog-post'
 
 type BlogPostPageProps = {
   username?: string
@@ -10,43 +7,15 @@ type BlogPostPageProps = {
 }
 
 const MISSING_POST_MESSAGE = 'No published post found.'
-const LOAD_POST_ERROR_MESSAGE = 'Failed to load blog post.'
 
 export function BlogPostPage({ username, postId }: BlogPostPageProps) {
   const routeParams = parseBlogPostPath(window.location.pathname)
   const resolvedUsername = username ?? routeParams?.username ?? ''
   const resolvedPostId = postId ?? routeParams?.postId ?? ''
-  const [post, setPost] = useState<PublicBlogPostDetail | null>(null)
-  const [errorMessage, setErrorMessage] = useState('')
-
-  useEffect(() => {
-    if (!resolvedUsername || !resolvedPostId) {
-      return
-    }
-
-    let cancelled = false
-
-    async function loadPost() {
-      try {
-        const nextPost = await fetchPublicBlogPost(resolvedUsername, resolvedPostId)
-
-        if (!cancelled) {
-          setPost(nextPost)
-          setErrorMessage('')
-        }
-      } catch (error) {
-        if (!cancelled) {
-          setErrorMessage(getErrorMessage(error, LOAD_POST_ERROR_MESSAGE))
-        }
-      }
-    }
-
-    void loadPost()
-
-    return () => {
-      cancelled = true
-    }
-  }, [resolvedPostId, resolvedUsername])
+  const { post, errorMessage } = usePublicBlogPost(
+    resolvedUsername,
+    resolvedPostId,
+  )
 
   if (!resolvedUsername || !resolvedPostId) {
     return <section className="feature-panel">{MISSING_POST_MESSAGE}</section>

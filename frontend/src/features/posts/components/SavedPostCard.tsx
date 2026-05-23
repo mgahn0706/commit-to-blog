@@ -26,8 +26,8 @@ export function SavedPostCard({ post, onEdit, onOpenBlog }: SavedPostCardProps) 
         <span>{new Date(post.updatedAt).toLocaleDateString()}</span>
       </div>
       <h3>{post.title}</h3>
-      <p>{post.summary || NO_SUMMARY_LABEL}</p>
-      <small>{sourceCommitLabel}</small>
+      <p className="saved-post-card__summary">{post.summary || NO_SUMMARY_LABEL}</p>
+      <small className="saved-post-card__source">{sourceCommitLabel}</small>
       <div className="saved-post-card__footer">
         <span className="status-pill">{post.status}</span>
         <div className="action-row">
