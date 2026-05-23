@@ -25,6 +25,19 @@ type RouteMatch =
   | { kind: 'blog-detail'; username: string; postId: string }
   | { kind: 'not-found' }
 
+type NavItem = {
+  label: string
+  isActive: boolean
+  onClick?: () => void
+  isDisabled?: boolean
+}
+
+const APP_NAME = 'Smart Blog'
+const DEFAULT_ACCOUNT_LABEL = 'Account'
+const FOOTER_TITLE = 'SMART_BLOG_SYSTEM'
+const FOOTER_COPY = 'Smart Blog Automation. Optimized for developers.'
+const FOOTER_LINK_LABELS = ['Documentation', 'GitHub Support', 'Privacy Policy']
+
 function matchRoute(pathname: string): RouteMatch {
   if (isComposePath(pathname)) {
     return { kind: 'compose' }
@@ -109,6 +122,30 @@ function App() {
     setPathname(path)
   }
 
+  const navItems: NavItem[] = [
+    {
+      label: 'My Blog',
+      isActive: route.kind === 'compose',
+      onClick: () => navigate(buildComposePath()),
+    },
+    {
+      label: 'Saved Posts',
+      isActive: route.kind === 'saved-posts' || route.kind === 'edit-post',
+      onClick: () => navigate(buildSavedPostsPath()),
+    },
+    {
+      label: 'Published',
+      isActive: route.kind === 'blog-list' || route.kind === 'blog-detail',
+      onClick: currentUsername ? () => navigate(buildBlogListPath(currentUsername)) : undefined,
+      isDisabled: !currentUsername,
+    },
+    {
+      label: 'Settings',
+      isActive: false,
+      isDisabled: true,
+    },
+  ]
+
   let page
 
   if (route.kind === 'compose') {
@@ -120,60 +157,59 @@ function App() {
   } else if (route.kind === 'blog-list') {
     page = <BlogIndexPage username={route.username} navigate={navigate} />
   } else if (route.kind === 'blog-detail') {
-    page = (
-      <BlogPostPage username={route.username} postId={route.postId} />
-    )
+    page = <BlogPostPage username={route.username} postId={route.postId} />
   } else {
     page = <section className="feature-panel">Page not found.</section>
   }
 
   return (
-    <main className="shell">
-      <header className="hero-panel">
-        <div>
-          <p className="eyebrow">Commit to Blog</p>
-          <h1>Turn selected commits into an internal blog post</h1>
-          <p className="hero-copy">
-            The MVP now covers compose, save, edit, publish, and public internal
-            blog viewing with a single frontend flow.
-          </p>
-        </div>
-        <div className="hero-card">
-          <p>Navigation</p>
-          <div className="action-row">
+    <main className="app-shell">
+      <header className="app-header">
+        <div className="app-header__inner">
+          <div className="app-header__left">
             <button
               type="button"
-              className="secondary-button"
+              className="brand-mark"
               onClick={() => navigate(buildComposePath())}
             >
-              Compose
+              {APP_NAME}
             </button>
-            <button
-              type="button"
-              className="secondary-button"
-              onClick={() => navigate(buildSavedPostsPath())}
-            >
-              Saved Posts
+            <nav className="app-nav" aria-label="Primary">
+              {navItems.map((item) => (
+                <button
+                  key={item.label}
+                  type="button"
+                  className={item.isActive ? 'nav-link is-active' : 'nav-link'}
+                  onClick={item.onClick}
+                  disabled={item.isDisabled}
+                >
+                  {item.label}
+                </button>
+              ))}
+            </nav>
+          </div>
+          <div className="app-header__right">
+            <span className="account-label">{currentUsername || DEFAULT_ACCOUNT_LABEL}</span>
+            <button type="button" className="profile-button" aria-label="Account">
+              <span className="profile-button__ring" />
             </button>
-            {currentUsername ? (
-              <button
-                type="button"
-                className="secondary-button"
-                onClick={() => navigate(buildBlogListPath(currentUsername))}
-              >
-                Internal Blog
-              </button>
-            ) : null}
           </div>
         </div>
       </header>
 
-      <article className="route-card">
-        <div className="route-header">
-          <span className="route-path">{pathname}</span>
+      <section className="app-body">{page}</section>
+
+      <footer className="app-footer">
+        <div>
+          <p className="footer-title">{FOOTER_TITLE}</p>
+          <p className="footer-copy">{FOOTER_COPY}</p>
         </div>
-        <div className="route-body">{page}</div>
-      </article>
+        <div className="footer-links">
+          {FOOTER_LINK_LABELS.map((label) => (
+            <span key={label}>{label}</span>
+          ))}
+        </div>
+      </footer>
     </main>
   )
 }

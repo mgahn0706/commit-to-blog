@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { buildBlogPostPath, buildEditPostPath } from '@/app/routes'
+import { buildBlogPostPath, buildComposePath, buildEditPostPath } from '@/app/routes'
 import { SavedPostCard } from '@/features/posts/components/SavedPostCard'
 import { postsQueries } from '@/features/posts/queries'
 import type { SavedPostCard as SavedPostCardType } from '@/features/posts/types'
@@ -41,13 +41,24 @@ export function SavedPostsPage({ navigate }: SavedPostsPageProps) {
   }, [])
 
   return (
-    <section className="feature-layout">
-      <div className="feature-panel">
-        <h2>Saved posts</h2>
-        <p>Drafts and published posts are both visible from one feature slice.</p>
+    <section className="page-layout">
+      <div className="page-header">
+        <div>
+          <h2>Saved posts</h2>
+          <p>AI-generated drafts and commit-backed posts waiting for review or publishing.</p>
+        </div>
+        <button
+          type="button"
+          className="primary-button"
+          onClick={() => navigate?.(buildComposePath())}
+        >
+          + Create post
+        </button>
       </div>
+
       {errorMessage ? <p className="error-text">{errorMessage}</p> : null}
-      <div className="feature-stack">
+
+      <div className="saved-posts-grid">
         {posts.map((post) => (
           <SavedPostCard
             key={post.id}
@@ -58,6 +69,16 @@ export function SavedPostsPage({ navigate }: SavedPostsPageProps) {
             }
           />
         ))}
+
+        <button
+          type="button"
+          className="create-card"
+          onClick={() => navigate?.(buildComposePath())}
+        >
+          <span className="create-card__icon">+</span>
+          <strong>New draft</strong>
+          <p>Load commit history and generate a new post summary.</p>
+        </button>
       </div>
     </section>
   )

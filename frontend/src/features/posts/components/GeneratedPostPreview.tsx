@@ -18,6 +18,7 @@ type GeneratedPostPreviewProps = {
   onSave?: () => void
   onRegenerate?: () => void
   isSaving?: boolean
+  saveLabel?: string
 }
 
 export function GeneratedPostPreview({
@@ -25,9 +26,10 @@ export function GeneratedPostPreview({
   onSave,
   onRegenerate,
   isSaving,
+  saveLabel,
 }: GeneratedPostPreviewProps) {
   return (
-    <article className="feature-panel">
+    <article className="workspace-card preview-panel">
       <div className="feature-panel__meta">
         <span className="status-pill">
           {post.generationMode ?? DEFAULT_GENERATION_MODE}
@@ -56,7 +58,7 @@ export function GeneratedPostPreview({
           onClick={onSave}
           disabled={!onSave || isSaving}
         >
-          {isSaving ? 'Saving...' : 'Save to Saved Posts'}
+          {isSaving ? 'Saving...' : saveLabel ?? 'Save to Saved Posts'}
         </button>
         <button
           type="button"

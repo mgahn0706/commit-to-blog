@@ -18,26 +18,32 @@ export function SavedPostCard({ post, onEdit, onOpenBlog }: SavedPostCardProps) 
     : NO_SOURCE_COMMITS_LABEL
 
   return (
-    <article className="stack-card">
-      <div className="stack-card__row">
-        <strong>{post.title}</strong>
-        <span className="status-pill">{post.status}</span>
+    <article className="saved-post-card">
+      <div className="saved-post-card__meta">
+        <span className="branch-chip">
+          {post.sourceCommit?.sourceBranchName ?? 'draft'}
+        </span>
+        <span>{new Date(post.updatedAt).toLocaleDateString()}</span>
       </div>
+      <h3>{post.title}</h3>
       <p>{post.summary || NO_SUMMARY_LABEL}</p>
       <small>{sourceCommitLabel}</small>
-      <div className="action-row">
-        <button type="button" className="secondary-button" onClick={() => onEdit(post.id)}>
-          Edit
-        </button>
-        {post.status === 'PUBLISHED' ? (
-          <button
-            type="button"
-            className="secondary-button"
-            onClick={() => onOpenBlog(post.username, post.id)}
-          >
-            View blog
+      <div className="saved-post-card__footer">
+        <span className="status-pill">{post.status}</span>
+        <div className="action-row">
+          <button type="button" className="secondary-button" onClick={() => onEdit(post.id)}>
+            Edit
           </button>
-        ) : null}
+          {post.status === 'PUBLISHED' ? (
+            <button
+              type="button"
+              className="secondary-button"
+              onClick={() => onOpenBlog(post.username, post.id)}
+            >
+              View blog
+            </button>
+          ) : null}
+        </div>
       </div>
     </article>
   )

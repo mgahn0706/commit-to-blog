@@ -26,6 +26,8 @@ const BRANCHES_ERROR_MESSAGE = 'Failed to load branches.'
 const COMMITS_ERROR_MESSAGE = 'Failed to load commits.'
 const DRAFT_ERROR_MESSAGE = 'Failed to generate draft.'
 const SAVE_DRAFT_ERROR_MESSAGE = 'Failed to save draft.'
+const CREATE_BUTTON_LABEL = 'Save to post queue'
+const GENERATE_BUTTON_LABEL = 'Generate summary'
 
 export function MyBlogPage({ navigate }: MyBlogPageProps) {
   const [repositories, setRepositories] = useState<GithubRepository[]>([])
@@ -209,50 +211,83 @@ export function MyBlogPage({ navigate }: MyBlogPageProps) {
   }
 
   return (
-    <section className="feature-layout">
-      <div className="feature-panel">
-        <div className="field-grid">
-          <RepositorySelector
-            repositories={repositories}
-            value={selectedRepositoryId}
-            onChange={setSelectedRepositoryId}
-          />
-          <BranchSelector
-            branches={branches}
-            value={selectedBranch}
-            onChange={setSelectedBranch}
-          />
+    <section className="workspace-layout">
+      <div className="workspace-sidebar">
+        <div className="section-header">
+          <h2>Commit source</h2>
+          <p>Pick a repository, branch, and the commits you want the AI to summarize.</p>
         </div>
-        <p className="feature-note">
-          Select a repository, branch, and up to {MAX_SELECTED_COMMITS} commits,
-          then generate and save a draft.
-        </p>
-        <div className="action-row">
-          <button
-            type="button"
-            className="primary-button"
-            onClick={() => void generateDraft()}
-            disabled={isGenerating || selectedCommitShas.length === EMPTY_SELECTION_COUNT}
-          >
-            {isGenerating ? 'Generating...' : 'Generate draft'}
-          </button>
-          <span>{selectedCommitShas.length} commit(s) selected</span>
+
+        <div className="workspace-card">
+          <div className="field-grid">
+            <RepositorySelector
+              repositories={repositories}
+              value={selectedRepositoryId}
+              onChange={setSelectedRepositoryId}
+            />
+            <BranchSelector
+              branches={branches}
+              value={selectedBranch}
+              onChange={setSelectedBranch}
+            />
+          </div>
+        </div>
+
+        <div className="workspace-card">
+          <div className="workspace-card__title">
+            <h3>Recent commits</h3>
+            <span>{selectedCommitShas.length}/{MAX_SELECTED_COMMITS}</span>
+          </div>
+          <CommitList
+            commits={commits}
+            selectedCommitShas={selectedCommitShas}
+            onToggleCommit={toggleCommitSelection}
+          />
         </div>
       </div>
-      {errorMessage ? <p className="error-text">{errorMessage}</p> : null}
-      <CommitList
-        commits={commits}
-        selectedCommitShas={selectedCommitShas}
-        onToggleCommit={toggleCommitSelection}
-      />
-      {draft ? (
-        <GeneratedPostPreview
-          post={draft}
-          onSave={() => void saveDraft()}
-          onRegenerate={() => void generateDraft()}
-          isSaving={isSaving}
-        />
-      ) : null}
+
+      <div className="workspace-main">
+        <div className="workspace-card workspace-card--hero">
+          <div className="workspace-card__title">
+            <div>
+              <h2>Selected commit</h2>
+              <p>
+                {selectedCommitShas.length === EMPTY_SELECTION_COUNT
+                  ? 'Choose one or more commits to create an AI summary.'
+                  : `${selectedCommitShas.length} commit(s) queued for summary generation.`}
+              </p>
+            </div>
+            <button
+              type="button"
+              className="primary-button"
+              onClick={() => void generateDraft()}
+              disabled={isGenerating || selectedCommitShas.length === EMPTY_SELECTION_COUNT}
+            >
+              {isGenerating ? 'Generating...' : GENERATE_BUTTON_LABEL}
+            </button>
+          </div>
+          {errorMessage ? <p className="error-text">{errorMessage}</p> : null}
+        </div>
+
+        {draft ? (
+          <GeneratedPostPreview
+            post={draft}
+            onSave={() => void saveDraft()}
+            onRegenerate={() => void generateDraft()}
+            isSaving={isSaving}
+            saveLabel={CREATE_BUTTON_LABEL}
+          />
+        ) : (
+          <div className="workspace-card workspace-card--empty">
+            <div className="empty-illustration">AI</div>
+            <h3>AI summary preview</h3>
+            <p>
+              After you select commits and generate a summary, the draft preview will appear
+              here with source references and save actions.
+            </p>
+          </div>
+        )}
+      </div>
     </section>
   )
 }
