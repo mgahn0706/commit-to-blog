@@ -8,6 +8,7 @@ const BRANCHES_ERROR_MESSAGE = 'Failed to load branches.'
 export function useBranchSelection(selectedRepositoryId: string) {
   const [branches, setBranches] = useState<GithubBranch[]>([])
   const [selectedBranch, setSelectedBranch] = useState('')
+  const [loadedRepositoryId, setLoadedRepositoryId] = useState('')
   const [errorMessage, setErrorMessage] = useState('')
 
   useEffect(() => {
@@ -32,6 +33,7 @@ export function useBranchSelection(selectedRepositoryId: string) {
 
         setBranches(branchItems)
         setSelectedBranch(defaultBranch)
+        setLoadedRepositoryId(selectedRepositoryId)
         setErrorMessage('')
       } catch (error) {
         if (!cancelled) {
@@ -47,9 +49,11 @@ export function useBranchSelection(selectedRepositoryId: string) {
     }
   }, [selectedRepositoryId])
 
+  const hasLoadedSelectedRepository = loadedRepositoryId === selectedRepositoryId
+
   return {
-    branches: selectedRepositoryId ? branches : [],
-    selectedBranch: selectedRepositoryId ? selectedBranch : '',
+    branches: hasLoadedSelectedRepository ? branches : [],
+    selectedBranch: hasLoadedSelectedRepository ? selectedBranch : '',
     setSelectedBranch,
     errorMessage,
   }

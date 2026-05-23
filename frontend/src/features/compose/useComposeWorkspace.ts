@@ -1,7 +1,7 @@
-import { useEffect } from 'react'
 import { useBranchSelection } from './useBranchSelection'
 import { useCommitFeed } from './useCommitFeed'
 import { useCommitSelection } from './useCommitSelection'
+import { useComposeReset } from './useComposeReset'
 import { useDraftGeneration } from './useDraftGeneration'
 import { useDraftPreview } from './useDraftPreview'
 import { useDraftSave } from './useDraftSave'
@@ -45,31 +45,14 @@ export function useComposeWorkspace(onSaveSuccess?: () => void) {
     clearErrorMessage: clearDraftSaveErrorMessage,
   } = useDraftSave(onSaveSuccess)
 
-  useEffect(() => {
-    clearCommitSelection()
-    clearDraft()
-    clearDraftGenerationErrorMessage()
-    clearDraftSaveErrorMessage()
-  }, [
+  useComposeReset({
     selectedRepositoryId,
-    clearCommitSelection,
-    clearDraft,
-    clearDraftGenerationErrorMessage,
-    clearDraftSaveErrorMessage,
-  ])
-
-  useEffect(() => {
-    clearCommitSelection()
-    clearDraft()
-    clearDraftGenerationErrorMessage()
-    clearDraftSaveErrorMessage()
-  }, [
     selectedBranch,
     clearCommitSelection,
     clearDraft,
     clearDraftGenerationErrorMessage,
     clearDraftSaveErrorMessage,
-  ])
+  })
 
   return {
     repositories,
