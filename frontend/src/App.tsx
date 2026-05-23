@@ -1,15 +1,18 @@
 import { useEffect, useState } from 'react'
 import './App.css'
 import { BlogPostPage } from '@/app/blog/[username]/[postId]/page'
+import { BlogIndexPage } from '@/app/blog/[username]/page'
 import { MyBlogPage } from '@/app/my-blog/page'
 import { EditPostPage } from '@/app/posts/[postId]/edit/page'
 import { SavedPostsPage } from '@/app/saved-posts/page'
+import { fetchCurrentUser } from '@/features/auth/api'
 
 type RouteMatch =
   | { kind: 'compose' }
   | { kind: 'saved-posts' }
-  | { kind: 'edit-post' }
-  | { kind: 'blog-detail' }
+  | { kind: 'edit-post'; postId: string }
+  | { kind: 'blog-list'; username: string }
+  | { kind: 'blog-detail'; username: string; postId: string }
   | { kind: 'not-found' }
 
 function matchRoute(pathname: string): RouteMatch {
@@ -21,12 +24,26 @@ function matchRoute(pathname: string): RouteMatch {
     return { kind: 'saved-posts' }
   }
 
-  if (/^\/posts\/[^/]+\/edit$/.test(pathname)) {
-    return { kind: 'edit-post' }
+  const editMatch = pathname.match(/^\/posts\/([^/]+)\/edit$/)
+
+  if (editMatch) {
+    return { kind: 'edit-post', postId: editMatch[1] }
   }
 
-  if (/^\/blog\/[^/]+\/[^/]+$/.test(pathname)) {
-    return { kind: 'blog-detail' }
+  const blogDetailMatch = pathname.match(/^\/blog\/([^/]+)\/([^/]+)$/)
+
+  if (blogDetailMatch) {
+    return {
+      kind: 'blog-detail',
+      username: blogDetailMatch[1],
+      postId: blogDetailMatch[2],
+    }
+  }
+
+  const blogListMatch = pathname.match(/^\/blog\/([^/]+)$/)
+
+  if (blogListMatch) {
+    return { kind: 'blog-list', username: blogListMatch[1] }
   }
 
   return { kind: 'not-found' }
@@ -34,6 +51,7 @@ function matchRoute(pathname: string): RouteMatch {
 
 function App() {
   const [pathname, setPathname] = useState(window.location.pathname)
+  const [currentUsername, setCurrentUsername] = useState('')
   const route = matchRoute(pathname)
 
   useEffect(() => {
@@ -45,6 +63,30 @@ function App() {
 
     return () => {
       window.removeEventListener('popstate', handlePopstate)
+    }
+  }, [])
+
+  useEffect(() => {
+    let cancelled = false
+
+    async function loadCurrentUser() {
+      try {
+        const user = await fetchCurrentUser()
+
+        if (!cancelled) {
+          setCurrentUsername(user.username)
+        }
+      } catch {
+        if (!cancelled) {
+          setCurrentUsername('')
+        }
+      }
+    }
+
+    void loadCurrentUser()
+
+    return () => {
+      cancelled = true
     }
   }, [])
 
@@ -64,9 +106,13 @@ function App() {
   } else if (route.kind === 'saved-posts') {
     page = <SavedPostsPage navigate={navigate} />
   } else if (route.kind === 'edit-post') {
-    page = <EditPostPage />
+    page = <EditPostPage postId={route.postId} navigate={navigate} />
+  } else if (route.kind === 'blog-list') {
+    page = <BlogIndexPage username={route.username} navigate={navigate} />
   } else if (route.kind === 'blog-detail') {
-    page = <BlogPostPage />
+    page = (
+      <BlogPostPage username={route.username} postId={route.postId} />
+    )
   } else {
     page = <section className="feature-panel">Page not found.</section>
   }
@@ -76,10 +122,10 @@ function App() {
       <header className="hero-panel">
         <div>
           <p className="eyebrow">Commit to Blog</p>
-          <h1>Turn selected commits into a saved internal blog draft</h1>
+          <h1>Turn selected commits into an internal blog post</h1>
           <p className="hero-copy">
-            The compose flow now uses the backend APIs for repository browsing,
-            commit selection, AI draft generation, and draft saving.
+            The MVP now covers compose, save, edit, publish, and public internal
+            blog viewing with a single frontend flow.
           </p>
         </div>
         <div className="hero-card">
@@ -95,6 +141,15 @@ function App() {
             >
               Saved Posts
             </button>
+            {currentUsername ? (
+              <button
+                type="button"
+                className="secondary-button"
+                onClick={() => navigate(`/blog/${currentUsername}`)}
+              >
+                Internal Blog
+              </button>
+            ) : null}
           </div>
         </div>
       </header>
