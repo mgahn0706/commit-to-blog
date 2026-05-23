@@ -12,6 +12,11 @@ export type RouteMatch =
   | { kind: 'blog-detail'; username: string; postId: string }
   | { kind: 'not-found' }
 
+type MatchedRoute = Exclude<RouteMatch, { kind: 'not-found' }>
+type RouteMatcher = {
+  match: (pathname: string) => MatchedRoute | null
+}
+
 type BlogListRoute = {
   username: string
 }
@@ -77,35 +82,54 @@ export function parseBlogPostPath(pathname: string): BlogDetailRoute | null {
   }
 }
 
+const routeMatchers: RouteMatcher[] = [
+  {
+    match: (pathname) => (isComposePath(pathname) ? { kind: 'compose' } : null),
+  },
+  {
+    match: (pathname) =>
+      isSavedPostsPath(pathname) ? { kind: 'saved-posts' } : null,
+  },
+  {
+    match: (pathname) => {
+      const editRoute = parseEditPostPath(pathname)
+
+      return editRoute
+        ? { kind: 'edit-post', postId: editRoute.postId }
+        : null
+    },
+  },
+  {
+    match: (pathname) => {
+      const blogDetailRoute = parseBlogPostPath(pathname)
+
+      return blogDetailRoute
+        ? {
+            kind: 'blog-detail',
+            username: blogDetailRoute.username,
+            postId: blogDetailRoute.postId,
+          }
+        : null
+    },
+  },
+  {
+    match: (pathname) => {
+      const blogListRoute = parseBlogListPath(pathname)
+
+      return blogListRoute
+        ? { kind: 'blog-list', username: blogListRoute.username }
+        : null
+    },
+  },
+]
+
 export function matchRoute(pathname: string): RouteMatch {
-  if (isComposePath(pathname)) {
-    return { kind: 'compose' }
-  }
+  for (const routeMatcher of routeMatchers) {
+    const matchedRoute = routeMatcher.match(pathname)
 
-  if (isSavedPostsPath(pathname)) {
-    return { kind: 'saved-posts' }
-  }
-
-  const editRoute = parseEditPostPath(pathname)
-
-  if (editRoute) {
-    return { kind: 'edit-post', postId: editRoute.postId }
-  }
-
-  const blogDetailRoute = parseBlogPostPath(pathname)
-
-  if (blogDetailRoute) {
-    return {
-      kind: 'blog-detail',
-      username: blogDetailRoute.username,
-      postId: blogDetailRoute.postId,
+    if (matchedRoute) {
+      return matchedRoute
     }
-  }
-
-  const blogListRoute = parseBlogListPath(pathname)
-
-  if (blogListRoute) {
-    return { kind: 'blog-list', username: blogListRoute.username }
   }
 
   return { kind: 'not-found' }
