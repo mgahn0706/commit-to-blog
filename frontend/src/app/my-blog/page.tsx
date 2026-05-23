@@ -40,7 +40,7 @@ export function MyBlogPage({ navigate }: MyBlogPageProps) {
           <div>
             <span className="section-kicker">Compose</span>
             <h1>Choose the commits that deserve a post.</h1>
-            <p>
+            <p className="text-measure-lg">
               Start with one repository and one branch. Then pick the changes that
               tell a coherent story before asking AI to draft it.
             </p>
@@ -84,7 +84,7 @@ export function MyBlogPage({ navigate }: MyBlogPageProps) {
             <div>
               <span className="section-kicker">Draft Setup</span>
               <h2>Generate a readable summary from the selected changes.</h2>
-              <p>
+              <p className="text-measure-lg">
                 {selectedCommitShas.length === emptySelectionCount
                   ? 'Choose one or more commits first. The preview will stay empty until the source set is clear.'
                   : `${selectedCommitShas.length} commit(s) are queued. Generate once the selection reads like one story.`}
@@ -114,7 +114,7 @@ export function MyBlogPage({ navigate }: MyBlogPageProps) {
           <div className="workspace-card workspace-card--empty">
             <div className="empty-illustration">AI</div>
             <h3>Draft preview appears here</h3>
-            <p>
+            <p className="text-measure-md">
               After generation, this area will show the proposed title, summary, body,
               and the commits that shaped the draft.
             </p>

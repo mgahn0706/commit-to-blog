@@ -45,7 +45,6 @@
 .page-header p,
 .section-header p,
 .workspace-card__title p {
-  max-width: 58ch;
   font-size: 0.95rem;
   line-height: 1.72;
   color: var(--text-soft);

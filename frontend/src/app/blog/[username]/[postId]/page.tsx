@@ -31,11 +31,11 @@ export function BlogPostPage({ username, postId }: BlogPostPageProps) {
         <h2>
           {post.username}/{post.id}
         </h2>
-        <p>Published posts are rendered from the public blog API.</p>
+        <p className="text-measure-lg">Published posts are rendered from the public blog API.</p>
       </div>
       <article className="feature-panel">
         <h3>{post.title}</h3>
-        <p>{post.summary || 'No summary yet.'}</p>
+        <p className="text-measure-lg">{post.summary || 'No summary yet.'}</p>
         <div className="preview-body">
           <p>{post.body}</p>
         </div>

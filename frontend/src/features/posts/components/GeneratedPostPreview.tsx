@@ -51,7 +51,7 @@ export function GeneratedPostPreview({
       ) : null}
       <span className="section-kicker">Preview</span>
       <h3>{post.title}</h3>
-      <p>{post.summary}</p>
+      <p className="text-measure-lg">{post.summary}</p>
       <ul className="stack-list compact-list">
         {post.sourceCommits.map((commit) => (
           <li key={commit.sha} className="stack-card stack-card--compact">
@@ -63,7 +63,7 @@ export function GeneratedPostPreview({
         ))}
       </ul>
       <div className="preview-body">
-        <p>{post.body}</p>
+        <p className="text-measure-xl">{post.body}</p>
       </div>
       <div className="action-row">
         <button

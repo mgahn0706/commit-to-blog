@@ -13,7 +13,7 @@ export function BlogIndexPage({ username, navigate }: BlogIndexPageProps) {
     <section className="feature-layout">
       <div className="feature-panel">
         <h2>{username}&rsquo;s internal blog</h2>
-        <p>Published posts are visible here after a draft is promoted.</p>
+        <p className="text-measure-lg">Published posts are visible here after a draft is promoted.</p>
       </div>
 
       {errorMessage ? <p className="error-text">{errorMessage}</p> : null}
@@ -25,7 +25,7 @@ export function BlogIndexPage({ username, navigate }: BlogIndexPageProps) {
               <strong>{post.title}</strong>
               <span>{new Date(post.publishedAt).toLocaleString()}</span>
             </div>
-            <p>{post.summary || 'No summary yet.'}</p>
+            <p className="text-measure-lg">{post.summary || 'No summary yet.'}</p>
             <button
               type="button"
               className="secondary-button"

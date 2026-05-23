@@ -156,6 +156,21 @@ textarea {
 
 p {
   margin: 0;
+}
+
+.text-measure-sm {
+  max-width: 36ch;
+}
+
+.text-measure-md {
+  max-width: 44ch;
+}
+
+.text-measure-lg {
+  max-width: 58ch;
+}
+
+.text-measure-xl {
   max-width: 68ch;
 }
 

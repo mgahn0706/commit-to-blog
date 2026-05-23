@@ -35,7 +35,7 @@ export function EditPostPage({ postId, navigate }: EditPostPageProps) {
     <section className="feature-layout">
       <div className="feature-panel">
         <h2>Edit post</h2>
-        <p>Refine the generated draft, then publish it to the internal blog.</p>
+        <p className="text-measure-lg">Refine the generated draft, then publish it to the internal blog.</p>
       </div>
       <PostEditor
         post={post}

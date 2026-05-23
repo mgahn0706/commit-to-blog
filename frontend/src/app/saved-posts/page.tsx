@@ -15,7 +15,7 @@ export function SavedPostsPage({ navigate }: SavedPostsPageProps) {
         <div>
           <span className="section-kicker">Library</span>
           <h1>Saved posts</h1>
-          <p>
+          <p className="text-measure-lg">
             Review generated drafts, refine the writing, and keep published posts
             in the same working archive.
           </p>
@@ -50,7 +50,7 @@ export function SavedPostsPage({ navigate }: SavedPostsPageProps) {
         >
           <span className="create-card__icon">+</span>
           <strong>New draft</strong>
-          <p>Load commit history and generate a new post summary.</p>
+          <p className="text-measure-sm">Load commit history and generate a new post summary.</p>
         </button>
       </div>
     </section>
