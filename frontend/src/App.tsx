@@ -1,4 +1,6 @@
-import './App.css'
+import '@/app/styles/appShell.css'
+import '@/app/styles/appLayout.css'
+import '@/app/styles/appSurfaces.css'
 import { buildComposePath } from '@/app/routes'
 import { buildPrimaryNavItems } from '@/app/navigation'
 import { renderRouteView } from '@/app/render-route'
