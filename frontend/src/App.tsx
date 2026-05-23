@@ -1,23 +1,9 @@
 import './App.css'
-import {
-  buildBlogListPath,
-  buildComposePath,
-  buildSavedPostsPath,
-} from '@/app/routes'
+import { buildComposePath } from '@/app/routes'
+import { buildPrimaryNavItems } from '@/app/navigation'
+import { renderRouteView } from '@/app/render-route'
 import { useAppRouter } from '@/app/use-app-router'
-import { BlogPostPage } from '@/app/blog/[username]/[postId]/page'
-import { BlogIndexPage } from '@/app/blog/[username]/page'
-import { MyBlogPage } from '@/app/my-blog/page'
-import { EditPostPage } from '@/app/posts/[postId]/edit/page'
-import { SavedPostsPage } from '@/app/saved-posts/page'
 import { useCurrentUsername } from '@/features/auth/use-current-username'
-
-type NavItem = {
-  label: string
-  isActive: boolean
-  onClick?: () => void
-  isDisabled?: boolean
-}
 
 const APP_NAME = 'Smart Blog'
 const FOOTER_TITLE = 'SMART_BLOG_SYSTEM'
@@ -27,46 +13,8 @@ const FOOTER_LINK_LABELS = ['Documentation', 'GitHub Support', 'Privacy Policy']
 function App() {
   const { route, navigate } = useAppRouter()
   const currentUsername = useCurrentUsername()
-
-  const navItems: NavItem[] = [
-    {
-      label: 'My Blog',
-      isActive: route.kind === 'compose',
-      onClick: () => navigate(buildComposePath()),
-    },
-    {
-      label: 'Saved Posts',
-      isActive: route.kind === 'saved-posts' || route.kind === 'edit-post',
-      onClick: () => navigate(buildSavedPostsPath()),
-    },
-    {
-      label: 'Published',
-      isActive: route.kind === 'blog-list' || route.kind === 'blog-detail',
-      onClick: currentUsername ? () => navigate(buildBlogListPath(currentUsername)) : undefined,
-      isDisabled: !currentUsername,
-    },
-    {
-      label: 'Settings',
-      isActive: false,
-      isDisabled: true,
-    },
-  ]
-
-  let page
-
-  if (route.kind === 'compose') {
-    page = <MyBlogPage navigate={navigate} />
-  } else if (route.kind === 'saved-posts') {
-    page = <SavedPostsPage navigate={navigate} />
-  } else if (route.kind === 'edit-post') {
-    page = <EditPostPage postId={route.postId} navigate={navigate} />
-  } else if (route.kind === 'blog-list') {
-    page = <BlogIndexPage username={route.username} navigate={navigate} />
-  } else if (route.kind === 'blog-detail') {
-    page = <BlogPostPage username={route.username} postId={route.postId} />
-  } else {
-    page = <section className="feature-panel">Page not found.</section>
-  }
+  const navItems = buildPrimaryNavItems({ route, currentUsername, navigate })
+  const page = renderRouteView({ route, navigate })
 
   return (
     <main className="app-shell">

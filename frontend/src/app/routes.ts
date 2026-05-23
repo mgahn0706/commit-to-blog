@@ -4,6 +4,14 @@ const SAVED_POSTS_PATH = '/saved-posts'
 const BLOG_PATH_PREFIX = '/blog'
 const POSTS_PATH_PREFIX = '/posts'
 
+export type RouteMatch =
+  | { kind: 'compose' }
+  | { kind: 'saved-posts' }
+  | { kind: 'edit-post'; postId: string }
+  | { kind: 'blog-list'; username: string }
+  | { kind: 'blog-detail'; username: string; postId: string }
+  | { kind: 'not-found' }
+
 type BlogListRoute = {
   username: string
 }
@@ -67,4 +75,38 @@ export function parseBlogPostPath(pathname: string): BlogDetailRoute | null {
     username: match[1],
     postId: match[2],
   }
+}
+
+export function matchRoute(pathname: string): RouteMatch {
+  if (isComposePath(pathname)) {
+    return { kind: 'compose' }
+  }
+
+  if (isSavedPostsPath(pathname)) {
+    return { kind: 'saved-posts' }
+  }
+
+  const editRoute = parseEditPostPath(pathname)
+
+  if (editRoute) {
+    return { kind: 'edit-post', postId: editRoute.postId }
+  }
+
+  const blogDetailRoute = parseBlogPostPath(pathname)
+
+  if (blogDetailRoute) {
+    return {
+      kind: 'blog-detail',
+      username: blogDetailRoute.username,
+      postId: blogDetailRoute.postId,
+    }
+  }
+
+  const blogListRoute = parseBlogListPath(pathname)
+
+  if (blogListRoute) {
+    return { kind: 'blog-list', username: blogListRoute.username }
+  }
+
+  return { kind: 'not-found' }
 }
